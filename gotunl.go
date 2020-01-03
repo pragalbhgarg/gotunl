@@ -14,6 +14,9 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
+	"time"
+
+	"github.com/pquerna/otp/totp"
 
 	"github.com/howeyc/gopass"
 	"github.com/tidwall/gjson"
@@ -32,6 +35,9 @@ type Gotunl struct {
 	unixSocket string
 	Profiles   map[string]profile
 }
+
+const pin = "Enter pin here"
+const awsKey = "Enter AWS key here"
 
 func _getKey() string {
 	keyPath := ""
@@ -204,16 +210,11 @@ func (g Gotunl) ConnectProfile(id string, user string, password string) {
 			var otp string
 			user = "pritunl"
 			if password == "" {
-				fmt.Printf("Enter the PIN: ")
-				pass, err := gopass.GetPasswdMasked()
-				if err != nil {
-					log.Fatal(err)
-				}
-				if auth == "otp_pin" {
-					fmt.Printf("Enter the OTP code: ")
-					fmt.Scanln(&otp)
-				}
+				// fmt.Printf("Entering PIN: ")
+				pass := pin
+				otp, _ = totp.GenerateCode(awsKey, time.Now())
 				password = string(pass) + otp
+				// fmt.Printf(password)
 			}
 		}
 		if user == "" {
